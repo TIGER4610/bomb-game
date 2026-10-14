@@ -220,3 +220,54 @@ p {
 
     margin-right: 6px;
 }
+
+/* ミッション演出 */
+body {
+    background: radial-gradient(ellipse at 50% 15%, #183442 0%, #0b111e 55%, #05080e 100%);
+    overflow-x: hidden;
+}
+body::before {
+    content: ""; position: fixed; inset: 0; pointer-events: none;
+    background-image: linear-gradient(#6ce8ff08 1px, transparent 1px), linear-gradient(90deg, #6ce8ff08 1px, transparent 1px);
+    background-size: 40px 40px;
+}
+.game {
+    position: relative; margin: 32px auto; padding: 25px 20px;
+    box-sizing: border-box; border: 1px solid #6ce8ff38; border-radius: 24px;
+    background: #0d1728dd; box-shadow: 0 20px 80px #0008, 0 0 45px #48cfff0a;
+}
+.effects-hud { margin-bottom: 22px; }
+.mission-label { display: block; color: #7cc9dc; font-size: 10px; letter-spacing: 2px; }
+.sound-toggle { margin-top: 12px; padding: 7px 12px; color: #b1d9e8; background: #142335; border: 1px solid #37556b; border-radius: 20px; cursor: pointer; font-size: 10px; letter-spacing: 1px; }
+.memory-clock { margin-top: 18px; color: #6ce8ff; }
+.memory-clock[hidden] { display: none; }
+.memory-clock > span { font-size: 10px; letter-spacing: 3px; }
+.memory-clock strong { display: block; font: bold 35px monospace; margin: 4px; }
+.clock-track { height: 4px; background: #203349; border-radius: 4px; overflow: hidden; }
+.clock-track i { display: block; height: 100%; background: #6ce8ff; transform-origin: left; box-shadow: 0 0 15px #6ce8ff; }
+#stage { color: #6ce8ff; font: bold 14px monospace; letter-spacing: 3px; }
+.bomb-icon { filter: drop-shadow(0 0 12px #ff8e3655); animation: bomb-pulse 2s ease-in-out infinite; }
+#startButton { color: #062021; background: linear-gradient(120deg, #72ffb2, #6ce8ff); box-shadow: 0 5px 25px #6ce8ff30; transition: transform .18s, box-shadow .18s; }
+#startButton:hover { transform: translateY(-3px); box-shadow: 0 8px 30px #6ce8ff55; }
+#startButton:active { transform: scale(.97); }
+.color-button { background: #17273d; border: 1px solid #39526c; transition: transform .16s, border-color .16s; animation: enter-button .35s ease-out backwards; }
+.color-button:nth-child(2) { animation-delay: .06s; }
+.color-button:nth-child(3) { animation-delay: .12s; }
+.color-button:nth-child(n+4) { animation-delay: .18s; }
+.color-button:hover:enabled { transform: translateY(-3px); border-color: #6ce8ff; }
+.color-button:disabled { border-color: #72ffb2; }
+.memory-item { box-shadow: inset 0 -5px 12px #0003, 0 0 22px #ffffff12; }
+.memorizing .memory-item { animation: memory-glow 1s ease-in-out infinite alternate; }
+#howToPlay, #clearMessage { background: #142337; border: 1px solid #39526c55; }
+.mission-clear .game { border-color: #72ffb2; box-shadow: 0 0 60px #72ffb220; }
+.mission-clear #message, .mission-clear #clearMessage h2 { color: #72ffb2; }
+.mission-failed .game { border-color: #ff6464; animation: impact .45s ease-out; box-shadow: 0 0 70px #ff4d4d30; }
+.mission-failed #message { color: #ff8c8c; }
+#effects { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
+button:focus-visible { outline: 3px solid #ffe47c; outline-offset: 4px; }
+@keyframes bomb-pulse { 50% { transform: scale(1.12) rotate(-6deg); } }
+@keyframes memory-glow { to { box-shadow: 0 0 25px #ffffff55; transform: scale(1.05); } }
+@keyframes enter-button { from { opacity: 0; transform: translateY(12px) scale(.9); } to { opacity: 1; transform: none; } }
+@keyframes impact { 15%, 45% { transform: translateX(-8px) rotate(-1deg); } 30%, 60% { transform: translateX(8px) rotate(1deg); } 100% { transform: none; } }
+@media (max-width: 480px) { .game { padding: 20px 14px; } h1 { font-size: 25px; } #sequence { gap: 8px; } .memory-item { width: 55px; height: 55px; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }

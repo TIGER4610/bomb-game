@@ -540,3 +540,140 @@ function resetToTitle() {
         "inline-block";
 
 }
+
+// 演出はゲームの判定から独立させる。
+(() => {
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const canvas = document.createElement("canvas");
+    canvas.id = "effects";
+    canvas.setAttribute("aria-hidden", "true");
+    document.body.appendChild(canvas);
+    const ctx = canvas.getContext("2d");
+    const hud = document.createElement("div");
+    hud.className = "effects-hud";
+    hud.innerHTML = '<span class="mission-label">BOMB DEFUSAL // MEMORY MISSION</span><button class="sound-toggle" type="button" aria-pressed="false">SOUND OFF</button><div class="memory-clock" hidden><span>MEMORIZE</span><strong>4.0</strong><div class="clock-track"><i></i></div></div>';
+    document.querySelector(".game").prepend(hud);
+    const clock = hud.querySelector(".memory-clock");
+    const clockNumber = clock.querySelector("strong");
+    const clockBar = clock.querySelector("i");
+    const soundButton = hud.querySelector("button");
+    let sound = false, audio, particles = [], frame = 0, countdownFrame = 0;
+    let width = 0, height = 0, previousTime = 0;
+    function resize() {
+        width = window.innerWidth;
+        height = window.innerHeight;
+        const ratio = Math.min(window.devicePixelRatio || 1, 2);
+        canvas.width = width * ratio;
+        canvas.height = height * ratio;
+        ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+    }
+    window.addEventListener("resize", resize);
+    resize();
+    function tone(frequency, duration = 0.12, type = "sine", delay = 0) {
+        if (!sound || !audio) return;
+        const oscillator = audio.createOscillator(), gain = audio.createGain();
+        oscillator.type = type;
+        oscillator.frequency.value = frequency;
+        const time = audio.currentTime + delay;
+        gain.gain.setValueAtTime(0.045, time);
+        gain.gain.exponentialRampToValueAtTime(0.001, time + duration);
+        oscillator.connect(gain); gain.connect(audio.destination);
+        oscillator.start(time); oscillator.stop(time + duration);
+        oscillator.onended = () => { oscillator.disconnect(); gain.disconnect(); };
+    }
+    soundButton.addEventListener("click", () => {
+        const AudioClass = window.AudioContext || window.webkitAudioContext;
+        if (!AudioClass) { soundButton.textContent = "SOUND UNAVAILABLE"; return; }
+        try {
+            audio ||= new AudioClass();
+            audio.resume().catch(() => {});
+            sound = !sound;
+            soundButton.textContent = sound ? "SOUND ON" : "SOUND OFF";
+            soundButton.setAttribute("aria-pressed", String(sound));
+            tone(660);
+        } catch { soundButton.textContent = "SOUND UNAVAILABLE"; }
+    });
+    function animate(time) {
+        const step = Math.min((time - previousTime) / 16.67 || 1, 2);
+        previousTime = time;
+        ctx.clearRect(0, 0, width, height);
+        particles = particles.filter(p => p.life > 0);
+        for (const p of particles) {
+            p.x += p.vx * step; p.y += p.vy * step;
+            p.vy += 0.10 * step; p.life -= step;
+            ctx.globalAlpha = Math.max(0, Math.min(1, p.life / 30));
+            ctx.fillStyle = p.color;
+            ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.life * 0.09);
+            ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
+            ctx.restore();
+        }
+        ctx.globalAlpha = 1;
+        if (particles.length) frame = requestAnimationFrame(animate);
+        else { frame = 0; ctx.clearRect(0, 0, width, height); }
+    }
+    function burst(x, y, colors, count = 70, power = 8) {
+        if (reducedMotion.matches || document.hidden) return;
+        for (let i = 0; i < count; i++) {
+            const angle = Math.random() * Math.PI * 2, speed = 2 + Math.random() * power;
+            particles.push({x, y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed - 3,
+                life: 40 + Math.random() * 45, size: 3 + Math.random() * 6, color: colors[i % colors.length]});
+        }
+        particles = particles.slice(-350);
+        if (!frame) { previousTime = performance.now(); frame = requestAnimationFrame(animate); }
+    }
+    function stopClock() {
+        cancelAnimationFrame(countdownFrame); countdownFrame = 0;
+        clock.hidden = true;
+        document.body.classList.remove("memorizing");
+    }
+    function startClock() {
+        stopClock(); clock.hidden = false;
+        document.body.classList.remove("mission-failed", "mission-clear");
+        document.body.classList.add("memorizing");
+        const start = performance.now();
+        let lastTick = 5;
+        function tick(now) {
+            const remaining = Math.max(0, 4 - (now - start) / 1000);
+            clockNumber.textContent = remaining.toFixed(1);
+            clockBar.style.transform = `scaleX(${remaining / 4})`;
+            const second = Math.ceil(remaining);
+            if (second !== lastTick) { tone(remaining < 1 ? 880 : 440, 0.07); lastTick = second; }
+            if (remaining > 0) countdownFrame = requestAnimationFrame(tick);
+        }
+        countdownFrame = requestAnimationFrame(tick);
+    }
+    new MutationObserver(() => {
+        const text = message.textContent;
+        if (text.includes("この順番")) startClock();
+        else {
+            stopClock();
+            if (text.includes("CLEAR") || text.includes("DEFUSED")) {
+                const final = text.includes("DEFUSED");
+                document.body.classList.add("mission-clear");
+                burst(width / 2, height * 0.4, ["#72ffb2", "#ffe47c", "#6ce8ff", "#f8a2ff"], final ? 200 : 95, final ? 13 : 8);
+                [523, 659, 784, 1047].forEach((n, i) => tone(n, 0.22, "sine", i * 0.12));
+            } else if (text.includes("BOOM")) {
+                document.body.classList.add("mission-failed");
+                burst(width / 2, height * 0.45, ["#ff4d4d", "#ff9a3c", "#ffe47c"], 130, 12);
+                tone(70, 0.5, "sawtooth");
+            } else if (text.includes("爆弾を解除")) {
+                document.body.classList.remove("mission-clear", "mission-failed");
+            }
+        }
+    }).observe(message, {childList: true, subtree: true, characterData: true});
+    buttons.addEventListener("click", event => {
+        const button = event.target.closest(".color-button");
+        if (!button) return;
+        if (button.disabled) {
+            const rect = button.getBoundingClientRect();
+            burst(rect.x + rect.width / 2, rect.y + rect.height / 2, ["#72ffb2", "#6ce8ff"], 18, 3);
+            tone(700 + currentIndex * 100, 0.08);
+        }
+    });
+    document.addEventListener("visibilitychange", () => {
+        if (document.hidden) {
+            cancelAnimationFrame(frame); frame = 0; particles = [];
+            ctx.clearRect(0, 0, width, height);
+        }
+    });
+})();
