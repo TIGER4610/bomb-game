@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>爆弾解除ゲーム</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="game">
+
+        <h1>
+            <img src="images/bomb.png" alt="" class="bomb-icon">
+            爆弾解除ゲーム
+        </h1>
+
+    <p id="stage">STAGE 1</p>
+
+    <p id="message">
+    爆弾を解除しよう！
+    </p>
+
+    <div id="howToPlay">
+        <p>表示された順番を覚えてください！</p>
+        <p>消えたら、同じ順番でタップしてください。</p>
+        <p>全5ステージをクリアすると景品GET！</p>
+    </div>
+
+    <div id="clearMessage"></div>
+
+        <!-- 覚える順番を表示する場所 -->
+        <div id="sequence"></div>
+
+        <!-- 回答ボタンを表示する場所 -->
+        <div id="buttons"></div>
+
+        <button id="startButton">START</button>
+
+    </div>
+
+    <script src="script.js"></script>
+
+</body>
+</html>
