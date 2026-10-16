@@ -86,6 +86,33 @@ function startGame() {
     stageText.textContent =
     "STAGE " + currentStage + " / 5";
 
+    message.textContent = "準備してください！";
+
+    document.body.classList.remove("mission-failed", "mission-clear");
+
+    let remaining = 3;
+    const countdown = document.createElement("div");
+    countdown.classList.add("start-countdown");
+    countdown.setAttribute("role", "status");
+    countdown.setAttribute("aria-live", "polite");
+    countdown.textContent = remaining;
+    sequence.appendChild(countdown);
+
+    function advanceCountdown() {
+        remaining--;
+        if (remaining > 0) {
+            countdown.textContent = remaining;
+            setTimeout(advanceCountdown, 1000);
+        } else {
+            sequence.innerHTML = "";
+            beginMemorizing();
+        }
+    }
+
+    setTimeout(advanceCountdown, 1000);
+}
+
+function beginMemorizing() {
     message.textContent = "この順番を覚えてください！";
 
 
@@ -97,7 +124,7 @@ function startGame() {
     showSequence();
 
 
-    // 3秒後
+    // 記憶する時間は4秒
     setTimeout(function() {
 
         sequence.innerHTML = "";
@@ -267,6 +294,10 @@ else if (currentStage === 5) {
 
 // 記憶画面
 function showSequence() {
+    const columns = currentItems.length > 4
+        ? Math.ceil(currentItems.length / 2)
+        : currentItems.length;
+    sequence.style.setProperty("--item-count", columns);
 
     for (let i = 0; i < currentItems.length; i++) {
 
@@ -274,7 +305,14 @@ function showSequence() {
 
         const memoryItem = createMemoryItem(item);
 
-        sequence.appendChild(memoryItem);
+        const step = document.createElement("div");
+        step.classList.add("sequence-step");
+        const row = Math.floor(i / columns);
+        const column = row === 0 ? i + 1 : columns - (i % columns);
+        step.style.gridRow = row + 1;
+        step.style.gridColumn = column;
+        step.appendChild(memoryItem);
+        sequence.appendChild(step);
 
 
         // 矢印
@@ -282,11 +320,15 @@ function showSequence() {
 
             const arrow = document.createElement("span");
 
-            arrow.textContent = "→";
+            const nextRow = (i + 1) % columns === 0;
+            arrow.textContent = nextRow ? "↓" : row === 0 ? "→" : "←";
 
-            arrow.style.fontSize = "35px";
+            arrow.classList.add("sequence-arrow");
+            if (nextRow) arrow.classList.add("sequence-arrow-down");
+            else if (row > 0) arrow.classList.add("sequence-arrow-left");
+            arrow.setAttribute("aria-hidden", "true");
 
-            sequence.appendChild(arrow);
+            step.appendChild(arrow);
 
         }
 
@@ -478,8 +520,7 @@ function showAnswerButtons() {
             else {
 
                 message.innerHTML = `
-                    <img src="images/explosion.png" alt="" class="message-icon">
-                    BOOM! 解除失敗！
+                    <span>BOOM！解除失敗！<img src="images/explosion.png" alt="" class="message-icon"></span>
                 `;
 
                 buttons.innerHTML = "";
@@ -600,11 +641,19 @@ function resetToTitle() {
         particles = particles.filter(p => p.life > 0);
         for (const p of particles) {
             p.x += p.vx * step; p.y += p.vy * step;
-            p.vy += 0.10 * step; p.life -= step;
+            p.vy += (p.fire ? 0.035 : 0.10) * step; p.life -= step;
             ctx.globalAlpha = Math.max(0, Math.min(1, p.life / 30));
             ctx.fillStyle = p.color;
             ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.life * 0.09);
-            ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
+            if (p.fire) {
+                ctx.shadowBlur = 18;
+                ctx.shadowColor = p.color;
+                ctx.beginPath();
+                ctx.arc(0, 0, p.size * Math.max(0.2, p.life / p.maxLife), 0, Math.PI * 2);
+                ctx.fill();
+            } else {
+                ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
+            }
             ctx.restore();
         }
         ctx.globalAlpha = 1;
@@ -625,6 +674,24 @@ function resetToTitle() {
         cancelAnimationFrame(countdownFrame); countdownFrame = 0;
         clock.hidden = true;
         document.body.classList.remove("memorizing");
+    }
+    function explode() {
+        if (!reducedMotion.matches && !document.hidden) {
+            const colors = ["#fff2b0", "#ffd34d", "#ff8a24", "#ff3c18", "#842b24"];
+            for (let i = 0; i < 160; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = 3 + Math.random() * 22;
+                const life = 35 + Math.random() * 55;
+                particles.push({x: width / 2, y: height * 0.45,
+                    vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed - 2,
+                    life, maxLife: life, size: 5 + Math.random() * 16,
+                    color: colors[i % colors.length], fire: true});
+            }
+            burst(width / 2, height * 0.45, ["#ffb52e", "#ffe9a3", "#ff5224"], 150, 27);
+        }
+        tone(95, 0.85, "sawtooth");
+        tone(42, 1.2, "triangle");
+        tone(55, 0.65, "sawtooth", 0.12);
     }
     function startClock() {
         stopClock(); clock.hidden = false;
@@ -654,8 +721,7 @@ function resetToTitle() {
                 [523, 659, 784, 1047].forEach((n, i) => tone(n, 0.22, "sine", i * 0.12));
             } else if (text.includes("BOOM")) {
                 document.body.classList.add("mission-failed");
-                burst(width / 2, height * 0.45, ["#ff4d4d", "#ff9a3c", "#ffe47c"], 130, 12);
-                tone(70, 0.5, "sawtooth");
+                explode();
             } else if (text.includes("爆弾を解除")) {
                 document.body.classList.remove("mission-clear", "mission-failed");
             }

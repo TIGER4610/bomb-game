@@ -28,11 +28,15 @@ p {
 
 /* 覚える順番 */
 #sequence {
-    display: flex;
+    --arrow-space: 44px;
+    display: grid;
+    grid-template-columns: repeat(var(--item-count, 1), minmax(0, 70px));
     justify-content: center;
+    justify-items: center;
     align-items: center;
+    align-content: center;
 
-    gap: 15px;
+    gap: var(--arrow-space);
 
     min-height: 180px;
 
@@ -40,14 +44,27 @@ p {
 
     font-size: 60px;
 
-    flex-wrap: wrap;
+}
+
+.sequence-step { position: relative; width: 100%; min-width: 0; display: grid; place-items: center; }
+#sequence .memory-item { width: min(70px, 100%); height: auto; aspect-ratio: 1; }
+#sequence .memory-shape { width: 50%; height: 50%; }
+.sequence-arrow {
+    position: absolute; right: calc(-1 * var(--arrow-space));
+    width: var(--arrow-space); display: grid; place-items: center;
+    font-size: 24px; line-height: 1;
+}
+.sequence-arrow-left { right: auto; left: calc(-1 * var(--arrow-space)); }
+.sequence-arrow-down {
+    right: auto; left: 50%; top: 100%; height: var(--arrow-space);
+    transform: translateX(-50%);
 }
 
 /* 回答ボタン */
 #buttons {
     display: grid;
 
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
 
     gap: 15px;
 
@@ -55,6 +72,13 @@ p {
     max-width: 400px;
 
     margin: 30px auto;
+}
+
+/* 奇数個のときだけ最後のボタンを中央へ。同じ列幅を維持する。 */
+#buttons > .color-button:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+    justify-self: center;
+    width: calc((100% - 15px) / 2);
 }
 
 .color-button {
@@ -261,13 +285,59 @@ body::before {
 #howToPlay, #clearMessage { background: #142337; border: 1px solid #39526c55; }
 .mission-clear .game { border-color: #72ffb2; box-shadow: 0 0 60px #72ffb220; }
 .mission-clear #message, .mission-clear #clearMessage h2 { color: #72ffb2; }
-.mission-failed .game { border-color: #ff6464; animation: impact .45s ease-out; box-shadow: 0 0 70px #ff4d4d30; }
-.mission-failed #message { color: #ff8c8c; }
+.mission-failed .game { border-color: #ff6464; box-shadow: 0 0 100px #ff4d4d65, inset 0 0 55px #ff3c181a; }
+.mission-failed #message { color: #ffb28c; font-size: clamp(24px, 6vw, 34px); font-weight: 900; text-shadow: 0 0 25px #ff5224aa; animation: blast-message .65s ease-out; }
+.mission-failed .game { animation: failure-glow 1.4s steps(1, end) infinite !important; }
+.mission-failed .game > :not(#message) { animation: impact .85s ease-out; }
+.mission-failed #message {
+    position: fixed; inset: 0; z-index: 12;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 16px; margin: 0; padding: 20px; box-sizing: border-box;
+    pointer-events: none;
+    background: radial-gradient(ellipse at center, #180b08b3, transparent 65%);
+}
+.mission-failed #startButton { position: relative; z-index: 13; }
+.mission-failed #message .message-icon { width: 64px; height: 64px; margin-right: 0; margin-left: 8px; }
+.mission-failed::after {
+    content: ""; position: fixed; inset: 0; z-index: 11; pointer-events: none;
+    background: radial-gradient(circle at 50% 45%, #fff3c6 0%, #ffad35b0 22%, #d5221260 55%, transparent 80%);
+    opacity: 0; animation: blast-flash .8s ease-out;
+}
+.mission-failed .game::after {
+    content: ""; position: fixed; left: 50%; top: 45%; width: 32vmin; height: 32vmin;
+    border: 8px solid #ffd77a; border-radius: 50%; pointer-events: none; z-index: 9;
+    box-shadow: 0 0 35px #ff7524, inset 0 0 35px #ff7524;
+    opacity: 0; animation: shockwave .9s ease-out;
+}
 #effects { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
 button:focus-visible { outline: 3px solid #ffe47c; outline-offset: 4px; }
 @keyframes bomb-pulse { 50% { transform: scale(1.12) rotate(-6deg); } }
 @keyframes memory-glow { to { box-shadow: 0 0 25px #ffffff55; transform: scale(1.05); } }
 @keyframes enter-button { from { opacity: 0; transform: translateY(12px) scale(.9); } to { opacity: 1; transform: none; } }
-@keyframes impact { 15%, 45% { transform: translateX(-8px) rotate(-1deg); } 30%, 60% { transform: translateX(8px) rotate(1deg); } 100% { transform: none; } }
-@media (max-width: 480px) { .game { padding: 20px 14px; } h1 { font-size: 25px; } #sequence { gap: 8px; } .memory-item { width: 55px; height: 55px; } }
+@keyframes impact {
+    10% { transform: translate(-18px, 10px) rotate(-3deg) scale(1.03); }
+    20% { transform: translate(17px, -12px) rotate(3deg); }
+    32% { transform: translate(-14px, 8px) rotate(-2deg); }
+    45% { transform: translate(11px, -6px) rotate(2deg); }
+    60% { transform: translate(-7px, 4px) rotate(-1deg); }
+    78% { transform: translate(4px, -2px); }
+    100% { transform: none; }
+}
+@keyframes blast-flash { 0% { opacity: .9; } 35% { opacity: .4; } 100% { opacity: 0; } }
+@keyframes failure-glow {
+    0%, 100% { border-color: #ff4646; box-shadow: 0 0 35px #ff3030, 0 0 100px #ff4d4d99, inset 0 0 35px #ff3c1844; }
+    50% { border-color: #492b32; box-shadow: none; }
+}
+@keyframes shockwave { from { opacity: .9; transform: translate(-50%, -50%) scale(.15); } to { opacity: 0; transform: translate(-50%, -50%) scale(6); } }
+@keyframes blast-message { from { opacity: 0; transform: scale(1.65); } to { opacity: 1; transform: scale(1); } }
+@media (max-width: 480px) { .game { padding: 20px 14px; } h1 { font-size: 25px; } .memory-item { width: 55px; height: 55px; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+.start-countdown {
+    grid-column: 1 / -1;
+    font-size: clamp(72px, 18vw, 120px);
+    font-weight: 900;
+    line-height: 1.2;
+    color: #ffe47c;
+    text-shadow: 0 0 24px rgba(255, 228, 124, 0.45);
+}
+
