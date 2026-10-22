@@ -460,4 +460,25 @@ button:focus-visible { outline: 3px solid #ffe47c; outline-offset: 4px; }
         font-size: 15px;
         line-height: 1.5;
     }
+
+    
+    .sequence-arrow {
+        display: inline-flex;
+        flex: 0 0 20px;
+        width: 20px;
+        min-width: 20px;
+        justify-content: center;
+        align-items: center;
+        white-space: nowrap;
+        font-size: clamp(16px, 4.5vw, 22px);
+        line-height: 1;
+    }
+
+    .sequence-arrow-down {
+        flex-basis: 100%;
+        width: 100%;
+        min-width: 100%;
+        margin: 2px 0;
+    }
+
 }
