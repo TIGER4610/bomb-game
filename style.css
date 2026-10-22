@@ -271,3 +271,123 @@ button:focus-visible { outline: 3px solid #ffe47c; outline-offset: 4px; }
 @keyframes impact { 15%, 45% { transform: translateX(-8px) rotate(-1deg); } 30%, 60% { transform: translateX(8px) rotate(1deg); } 100% { transform: none; } }
 @media (max-width: 480px) { .game { padding: 20px 14px; } h1 { font-size: 25px; } #sequence { gap: 8px; } .memory-item { width: 55px; height: 55px; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+
+
+
+/* スマホ向けレイアウト調整 */
+* {
+    box-sizing: border-box;
+}
+
+.game {
+    width: 94%;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+@media (max-width: 600px) {
+    body {
+        min-height: 100vh;
+        align-items: flex-start;
+        padding: 12px 0;
+    }
+
+    .game {
+        width: 94%;
+    }
+
+    h1 {
+        font-size: clamp(21px, 6vw, 28px);
+        line-height: 1.25;
+        margin: 8px 0 12px;
+    }
+
+    .bomb-icon {
+        width: 34px;
+        height: 34px;
+        margin-right: 4px;
+    }
+
+    p {
+        font-size: 16px;
+        line-height: 1.5;
+        margin: 8px 0;
+        overflow-wrap: anywhere;
+    }
+
+    #stage {
+        font-size: 16px;
+        margin: 8px 0;
+    }
+
+    #message {
+        font-size: 17px;
+        line-height: 1.4;
+        margin: 10px 0;
+    }
+
+    #howToPlay {
+        margin: 10px auto;
+        padding: 10px;
+        font-size: 14px;
+        line-height: 1.45;
+    }
+
+    #howToPlay p {
+        margin: 4px 0;
+    }
+
+    #sequence {
+        min-height: 0;
+        margin: 14px 0;
+        gap: 6px;
+        row-gap: 10px;
+        font-size: 24px;
+    }
+
+    .memory-item {
+        width: clamp(40px, 12vw, 55px);
+        height: clamp(40px, 12vw, 55px);
+        flex-shrink: 0;
+    }
+
+    .memory-shape {
+        width: 26px;
+        height: 26px;
+    }
+
+    #buttons {
+        width: 100%;
+        max-width: 340px;
+        gap: 10px;
+        margin: 14px auto;
+    }
+
+    .color-button {
+        height: clamp(68px, 21vw, 85px);
+        min-width: 0;
+        padding: 6px;
+    }
+
+    #startButton {
+        width: 90%;
+        padding: 14px;
+        font-size: 20px;
+    }
+
+    #clearMessage {
+        margin: 12px 0;
+        padding: 14px;
+        line-height: 1.5;
+    }
+
+    #clearMessage h2 {
+        font-size: 23px;
+        line-height: 1.35;
+    }
+
+    #clearMessage p {
+        font-size: 15px;
+        line-height: 1.5;
+    }
+}
