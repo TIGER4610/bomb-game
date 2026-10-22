@@ -355,6 +355,7 @@ button:focus-visible { outline: 3px solid #ffe47c; outline-offset: 4px; }
     margin: 0 auto;
 }
 
+
 @media (max-width: 600px) {
     body {
         min-height: 100vh;
@@ -407,18 +408,64 @@ button:focus-visible { outline: 3px solid #ffe47c; outline-offset: 4px; }
         margin: 4px 0;
     }
 
+    /* 覚える順番 */
     #sequence {
+        --arrow-space: clamp(24px, 7vw, 36px);
+
+        width: 100%;
+        box-sizing: border-box;
         min-height: 0;
         margin: 14px 0;
-        gap: 6px;
-        row-gap: 10px;
-        font-size: 24px;
+
+        grid-template-columns: repeat(
+            var(--item-count, 1),
+            minmax(0, 70px)
+        );
+
+        gap: var(--arrow-space);
+        justify-content: center;
+        align-items: center;
+        font-size: clamp(20px, 6vw, 30px);
     }
 
-    .memory-item {
-        width: clamp(40px, 12vw, 55px);
-        height: clamp(40px, 12vw, 55px);
+    /* 色の丸 */
+    #sequence .memory-item {
+        width: min(48px, 100%);
+        height: auto;
+        aspect-ratio: 1;
         flex-shrink: 0;
+    }
+
+    #sequence .memory-shape {
+        width: 50%;
+        height: 50%;
+    }
+
+    /* 矢印 */
+    #sequence .sequence-arrow {
+        position: absolute;
+        right: calc(-1 * var(--arrow-space));
+        width: var(--arrow-space);
+        display: grid;
+        place-items: center;
+        font-size: clamp(16px, 4.5vw, 22px);
+        line-height: 1;
+        white-space: nowrap;
+        visibility: visible;
+    }
+
+    #sequence .sequence-arrow-left {
+        right: auto;
+        left: calc(-1 * var(--arrow-space));
+    }
+
+    #sequence .sequence-arrow-down {
+        right: auto;
+        left: 50%;
+        top: 100%;
+        width: var(--arrow-space);
+        height: var(--arrow-space);
+        transform: translateX(-50%);
     }
 
     .memory-shape {
@@ -460,25 +507,5 @@ button:focus-visible { outline: 3px solid #ffe47c; outline-offset: 4px; }
         font-size: 15px;
         line-height: 1.5;
     }
-
-    
-    .sequence-arrow {
-        display: inline-flex;
-        flex: 0 0 20px;
-        width: 20px;
-        min-width: 20px;
-        justify-content: center;
-        align-items: center;
-        white-space: nowrap;
-        font-size: clamp(16px, 4.5vw, 22px);
-        line-height: 1;
-    }
-
-    .sequence-arrow-down {
-        flex-basis: 100%;
-        width: 100%;
-        min-width: 100%;
-        margin: 2px 0;
-    }
-
 }
+
